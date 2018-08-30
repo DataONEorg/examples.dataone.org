@@ -1,0 +1,85 @@
+html {
+  font-size: 80%;
+}
+
+* {
+  font-family: Bitstream Vera Sans Mono, Andale Mono, Courier;
+}
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+#container {
+  margin-left:50px;
+  margin-right: 50px;
+  min-height: 100%;
+  position: relative;
+}
+
+#header {
+  padding: 10px;
+}
+
+#body {
+  padding: 10px;
+}
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+}
+
+#server_response {
+  padding: 10px;
+}
+
+.output {
+  background-color: rgb(249,249,231);
+}
+
+.label {
+  float: left;
+  width: 150px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.outputrow {
+  width: 100%;
+  text-align: left;
+}
+
+.url {
+  background-color: rgb(226,236,226);
+}
+
+div.output {
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td, th {
+  text-align: left;
+  padding-right: 10px;
+  border-bottom: 1px dotted grey;
+}
+
+tr {
+}
+
+input, select {
+  font-size: 1.0rem;
+}

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inspect PID</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script type="text/javascript">
+
+
+// Generate a curl command that can perform the operation
+function generateCurl(url) {
+  var res = "curl -k \"" + url + "\" | xml fo"
+  return res
+}
+
+
+// Update UI elements in response to update events
+function doEncoding() {
+  var val = $("#it_pid").val();
+  if (val.length == 0) {
+    clearUI();
+    return;
+  }
+
+  var uval = URLencode(val);
+  $("#url_encoded").text(uval);
+
+  var qprefix = "v2/";
+  var baseurl = $("#in_baseurl").val();
+  remember(val, baseurl);
+
+  if (! baseurl.endsWith("/") ) {
+    baseurl += "/"
+  }
+
+  //resolve pid
+  var rmapval = "resolve/";
+  var url = baseurl + qprefix + rmapval + URLencode(val);
+  $("#resolve_url").text(url);
+
+  //get system metadata
+  rmapval = "meta/";
+  $("#q_operation").text(qprefix + rmapval + val);
+  url = baseurl + qprefix + rmapval + URLencode(val);
+  $("#sysmeta_url").text(url);
+
+  // get object
+  rmapval = "object/";
+  url = baseurl + qprefix + rmapval + URLencode(val);
+  $("#get_url").text(url);
+
+  //solr query
+  rmapval = "query/solr/";
+  var qterms = {};
+  var params = {};
+  qterms['id'] = $("#it_pid").val();
+  var query = addSolrQueryParams("*:*", qterms);
+  params['q'] = query;
+  params['fl'] = "*";
+  url = addUrlQueryParams(baseurl + qprefix + rmapval, params, true);
+  $("#index_url").text(url);
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+  $("#bt_go").click( function() {
+
+    var url = $("#resolve_url").text();
+    getXML(url, null, "#resolve_xml");
+
+    url = $("#sysmeta_url").text();
+    getXML(url, null, "#system_metadata_xml");
+
+    url = $("#index_url").text();
+    getXML(url, null, "#index_xml");
+
+    url = $("#get_url").text();
+    getXML(url, null, "#document_xml");
+
+  })
+
+  $("#it_pid").keyup(function() {
+     doEncoding();
+   });
+
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header">
+    <p id="index"></p>
+    <h1>CNRead.getSystemMetadata</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+
+<div id="encoder">
+<div class="help">
+<p>Given an identifier, reslve, get system metadata, retrieve index document, and retrieve object.</p>
+</div>
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+<p>
+  <span class="label">PID: </span>
+  <input type="text" id="it_pid" size="80" value="" />
+</p>
+<p>
+  <span class="label">Encoded PID: </span>
+  <span class="output help" id="url_encoded"></span>
+</p>
+<div class="outputrow">
+  <p>
+  <span class="label">Request:&nbsp;</span>
+  <span class="output" id="q_operation"></span>
+  </p>
+</div>
+<p>
+  <input type="button" id="bt_go" value="Go" />
+</p>
+</div><!-- encoder -->
+
+<div id="pid_resolve">
+<p>Resolve</p>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:&nbsp;</span>
+  <span class="output" id="resolve_url"></span>
+  </p>
+</div>
+<pre>
+<div class="output" id="resolve_xml">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+
+<div id="system_metadata">
+<p>System Metadata</p>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:&nbsp;</span>
+  <span class="output" id="sysmeta_url"></span>
+  </p>
+</div>
+<pre>
+<div class="output" id="system_metadata_xml">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+<div id="indexed_info">
+<p>Index Document</p>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:&nbsp;</span>
+  <span class="output" id="index_url"></span>
+  </p>
+</div>
+<pre>
+<div class="output" id="index_xml">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+<div id="document_object">
+<p>Document Object</p>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:&nbsp;</span>
+  <span class="output" id="get_url"></span>
+  </p>
+</div>
+<pre>
+<div class="output" id="document_xml">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+
+
+</div> <!-- body -->
+
+<div id="footer">
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

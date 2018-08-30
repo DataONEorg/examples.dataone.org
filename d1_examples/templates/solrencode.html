@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SOLR Query Term Encoding</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.xpath.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/stupidtable.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script type="text/javascript">
+
+// Update UI elements in response to update events
+function doEncoding() {
+  var val = $("#it_term").val();
+  
+  val = SOLRencode(val);
+  $("#solr_encoded").text(val);
+  
+  val = URLencode(val);
+  $("#url_encoded").text(val);  
+}
+
+//Document MAIN
+jQuery(document).ready(function($) {  
+  initialize();
+  $("#it_term").keyup(function() {
+     doEncoding();
+   });  
+});
+</script>
+
+</head>
+<body>
+  <div id="container">
+    <div id="body">
+      <div id="encoder">
+      <h1>SOLR Query Term Encoding</h1>
+      <p>Enter text in the text box below. The text will be presented below with
+      reserved characters for SOLR (+ - &amp; | ! ( ) { } [ ] ^ &quot; ~ * ? : \) 
+      escaped, and the whole term properly escaped for placement in a SOLR query 
+      URL.</p>
+      <p>Original: <input type="text" id="it_term" size="60" value="" /></p>
+      <p>SOLR encoded: <span id="solr_encoded"></span></p>
+      <p>SOLR and URL encoded: <span id="url_encoded"></span></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Find Package Objects</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.xpath.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/stupidtable.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script type="text/javascript">
+
+// Update UI elements in response to update events
+function doEncoding() {
+  var val = $("#it_pid").val();
+  if (val.length == 0) {
+    clearUI();
+    return;
+  }
+
+  var baseurl = $("#in_baseurl").val();
+  
+  remember(val, baseurl);
+
+  val = SOLRencode(val);
+  $("#solr_encoded").text(val);
+  
+  var uval = URLencode(val);
+  $("#url_encoded").text(uval);
+  
+  var qprefix = "fl=id,formatId&q=";
+
+  baseurl += "/v2/query/solr/"
+  if (baseurl.indexOf("?") < 0) {
+    baseurl += "?"
+  }
+  
+
+  var rmapval = "documents:" + val;
+  $("#q_data").text(qprefix + rmapval);
+  $("#a_data").text(baseurl + qprefix + URLencode(rmapval));
+  
+  
+  rmapval = "resourceMap:" + val;
+  $("#q_objects").text(qprefix + rmapval);
+  $("#a_objects").text(baseurl + qprefix + URLencode(rmapval));
+  
+  rmapval = "isDocumentedBy:" + val;
+  $("#q_metadata").text(qprefix + rmapval);
+  $("#a_metadata").text(baseurl + qprefix + URLencode(rmapval));
+  
+  qprefix = "fl=resourceMap&q=";
+  rmapval = "id:" + val;
+  $("#q_resourcemaps").text(qprefix + rmapval);
+  $("#a_resourcemaps").text(baseurl + qprefix + URLencode(rmapval));
+
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+
+  $("#it_pid").keyup(function() {
+     doEncoding();
+   });
+
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header">
+    <p id="index"></p>
+
+  <h1>Find Package Objects</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+    
+<div id="encoder">
+<div class="help">
+<p>Given an identifier, generate DataONE SOLR queries to locate:</p>
+<ol>
+  <li>Resource maps that contain the identifier</li>
+  <li>All objects referenced by a resource map</li>
+  <li>Data objects that the object documents (assuming the PID refers to metadata)</li>
+  <li>Metadata that document the object (assuming the PID refers to data)</li>
+</ol>
+<p>Click on the green URLs to invoke that call.</p>
+</div>
+
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+
+<p>
+  <span class="label">PID: </span>
+  <input type="text" id="it_pid" size="80" value="" />
+</p>
+<p>
+  <span class="label">SOLR encoded:</span>
+  <span class="output" id="solr_encoded"></span>
+</p>
+<p>
+  <span class="label">SOLR, URL encoded:</span>
+  <span class="output help" id="url_encoded"></span>
+</p>
+
+<p>1. Query to return resource maps that reference the identifier:</p>
+<div class="outputrow">
+  <span class="label">Request:</span>
+  <span class="output" id="q_resourcemaps"></span>
+</div>
+<div class="outputrow">
+  <span class="label">URL:</span>
+  <span class="output url" id="a_resourcemaps"></span>
+</div>
+
+<p>2. Query for a list of all objects within a resource map<span class="help"> 
+  (assumes the PID is for a resource map)</span>:</p>
+<div class="outputrow">
+  <span class="label">Request:</span>
+  <span class="output" id="q_objects"></span>
+</div>
+<div class="outputrow">
+  <span class="label">URL:</span>
+  <span class="output url" id="a_objects"></span>
+</div>
+
+
+<p>3. Query for a list of data objects described by the supplied PID<span class="help">
+ (assumes the PID is for science metadata)</span>:</p>
+<div class="outputrow">
+  <span class="label">Request:</span>
+  <span class="output" id="q_data"></span>
+</div>
+<div class="outputrow">
+  <span class="label">URL:</span>
+  <span class="output url" id="a_data"></span>
+</div>
+
+<p>4. Query for a list of metadata documents that describe the supplied PID
+  <span class="help"> (assumes the PID is for a data object)</span>:</p>
+<div class="outputrow">
+  <span class="label">Request:</span>
+  <span class="output" id="q_metadata"></span>
+</div>
+<div class="outputrow">
+  <span class="label">URL:</span>
+  <span class="output url" id="a_metadata"></span>
+</div>
+
+</div><!-- encoder -->
+
+<div id="server_response">
+<p>Server Response</p>
+<pre>
+<div class="output" id="xml_output">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+</div> <!-- body -->
+
+<div id="footer">
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

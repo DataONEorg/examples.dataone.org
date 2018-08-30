@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Index Field Values</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.xpath.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/stupidtable.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script type="text/javascript">
+
+
+function addUrlQueryParams(url, args, encode) {
+  res = "";
+  for (var key in args) {
+    if (args[key].length > 0) {
+      if (res.length > 0) {
+        res += "&";
+      }
+      res += key + "=";
+      if (encode) {
+        res += URLencode(args[key]);
+      } else {
+        res += args[key];
+      }
+    }
+  }
+  if (res.length > 0) {
+    return url + "?" + res;
+  }
+  return url;
+}
+
+
+function processXML(xml) {
+  var fieldName = $("#it_field").val();
+  var table = $("#extracted_values");
+  table.append("<thead><tr><th data-sort='int'>Count</th><th data-sort='string'>" + fieldName + "</th></tr></thead>");
+  table.append("<tbody>");
+  $(xml).xpath("//lst[@name='" + fieldName + "']/int").each( function() {
+    var count = $(this).text();
+    var fval = $(this).attr("name");
+    table.append("<tr><td>" + count + "<td>" + fval + "</td></tr>");
+  });
+  $("#extracted_values").stupidtable();
+}
+
+
+// Update UI elements in response to update events
+function doEncoding() {
+
+  var params={"q":"*:*",
+              "facet":"on",
+              "rows":"0",
+              "facet.limit":"50"
+              };
+  var val = "";  
+  var qprefix = "v2/";
+  var baseurl = $("#in_baseurl").val();
+  remember(null, baseurl);
+  params['q'] = $("#it_q").val();
+  params['facet.field'] = $("#it_field").val();
+  params['facet.limit'] = $("#it_limit").val();
+
+  if (! baseurl.endsWith("/") ) {
+    baseurl += "/"
+  }
+
+  // https://cn.dataone.org/cn/v1/query/solr/?q=*:*&facet=on&facet.field=formatId
+  var rmapval = "query/solr/";
+  var op = addUrlQueryParams(qprefix + rmapval, params, false);
+  $("#q_operation").text(qprefix + rmapval + val);
+  
+  //var url = baseurl + qprefix + rmapval + URLencode(val);
+  var url = addUrlQueryParams(baseurl + qprefix + rmapval, params, true);
+  $("#a_operation").text(url);
+  $('#curl_operation').text( generateCurl(url) );
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+  enableEnterKeyAction();
+  $('input[id^="it_"]').keyup(function() {
+     doEncoding();
+   });
+  
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header">
+  <p id="index"></p>
+  <h1>CNRead.Query() - Term Values</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+    
+<div id="encoder">
+<div class="help">
+<p>List the terms available in a field of the solr index using the  
+<a href='https://releases.dataone.org/online/api-documentation-v1.2.0/apis/CN_APIs.html#CNRead.query'>
+query()</a> method on a Coordinating Node.</p>
+<p>Hit &lt;Enter&gt; or click on the green URL to invoke the call.</p>
+</div>
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment" size="1">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+<p>
+  <span class="label">Field: </span>
+  <input id="it_field" size="30" value="formatId" />
+</p>
+<p>
+  <span class="label">Limit: </span>
+  <input id="it_limit" size="30" value="50" />
+</p>
+<p>
+  <span class="label">Query: </span>
+  <input id="it_q" size="80" value="*:*" />
+</p>
+<div class="outputrow">
+  <p>
+  <span class="label">Request:</span>
+  <span class="output" id="q_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:</span>
+  <span class="output url" id="a_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">cURL:</span>
+  <span class="output" id="curl_operation"></span>
+  </p>
+</div>
+
+</div><!-- encoder -->
+
+<div id="server_response">
+<p>Server Response</p>
+<table id="extracted_values">
+</table>
+<pre>
+<div class="output" id="xml_output">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+</div> <!-- body -->
+
+<div id="footer">
+
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

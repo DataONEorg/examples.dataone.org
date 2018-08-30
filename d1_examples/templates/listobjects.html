@@ -1,0 +1,179 @@
+<head>
+    <meta charset="utf-8">
+    <title>CNRead.listObjects()</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/date.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script type="text/javascript">
+        function addUrlQueryParams(url, args, encode) {
+            res = "";
+            for (var key in args) {
+                if (args[key].length > 0) {
+                    if (res.length > 0) {
+                        res += "&";
+                    }
+                    res += key + "=";
+                    if (encode) {
+                        res += URLencode(args[key]);
+                    } else {
+                        res += args[key];
+                    }
+                }
+            }
+            if (res.length > 0) {
+                return url + "?" + res;
+            }
+            return url;
+        }
+
+
+        function encodeDate(sd) {
+            try {
+                var dt = Date.parse(sd);
+                pd = dt.toISOString();
+                return pd;
+            } catch (err) {
+
+            }
+            return "";
+        }
+
+
+        // Update UI elements in response to update events
+        function doEncoding() {
+            var params = {};
+            params['start'] = $("#it_start").val();
+            params['count'] = $("#it_count").val();
+            params['formatId'] = $("#it_formatid").val();
+            params['fromDate'] = encodeDate($("#it_fromdate").val());
+            params['toDate'] = encodeDate($("#it_todate").val());
+
+            var qprefix = "v2/";
+            var baseurl = $("#in_baseurl").val();
+            remember(null, baseurl);
+
+            if (!baseurl.endsWith("/")) {
+                baseurl += "/"
+            }
+
+            var rmapval = "object";
+            var op = addUrlQueryParams(qprefix + rmapval, params, false);
+            $("#q_operation").text(op);
+
+            var url = addUrlQueryParams(baseurl + qprefix + rmapval, params, true);
+            $("#a_operation").text(url);
+            $('#curl_operation').text(generateCurl(url));
+        }
+
+
+        //Document MAIN
+        jQuery(document).ready(function($) {
+            serverList();
+            initialize();
+            enableEnterKeyAction();
+
+            $('input[id^="it_"]').keyup(function() {
+                doEncoding();
+            });
+
+        });
+    </script>
+
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <p id="index"></p>
+            <h1>CNRead.listObjects()</h1>
+        </div>
+        <!-- header -->
+
+        <div id="body">
+
+            <div id="encoder">
+                <div class="help">
+                    <p>Perform a
+                        <a href="https://releases.dataone.org/online/api-documentation-v1.2.0/apis/CN_APIs.html#CNRead.listObjects">
+listObjects()</a> operation on a Coordinating Node.</p>
+
+                    <p>Select the environment and specify optional slicing parameters. Note that the date fields accept entries like "-1 month" to specify a date 1 month ago.</p>
+                    <p>Hit &lt;Enter&gt; or click on the green URL to invoke the call.</p>
+                </div>
+                <p>
+                    <span class="label">Environment:</span>
+                    <select id="sel_environment">
+                    </select>
+                </p>
+                <p>
+                    <span class="label">Base URL: </span>
+                    <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn">
+                </p>
+                <p>
+                    <span class="label" style="padding-right: 10px;">Start: </span>
+                    <input type="text" id="it_start" size="10" value="0">
+                </p>
+                <p>
+                    <span class="label">Count:</span>
+                    <input type="text" id="it_count" size="10" value="10">
+                </p>
+                <p>
+                    <span class="label">FormatID:</span>
+                    <input type="text" id="it_formatid" size="80" value="">
+                </p>
+                <p>
+                    <span class="label">From Date:</span>
+                    <input type="text" id="it_fromdate" size="80" value="">
+                </p>
+                <p>
+                    <span class="label">To Date:</span>
+                    <input type="text" id="it_todate" size="80" value="">
+                </p>
+                <div class="outputrow">
+                    <p>
+                        <span class="label">Request:</span>
+                        <span class="output" id="q_operation"></span>
+                    </p>
+                </div>
+                <div class="outputrow">
+                    <p>
+                        <span class="label">URL:</span>
+                        <span class="output url" id="a_operation"></span>
+                    </p>
+                </div>
+                <div class="outputrow">
+                    <p>
+                        <span class="label">cURL:</span>
+                        <span class="output" id="curl_operation"></span>
+                    </p>
+                </div>
+
+            </div>
+            <!-- encoder -->
+
+            <div id="server_response">
+                <p>Server Response</p>
+                <ul id="object_urls">
+                </ul>
+                <pre><div class="output" id="xml_output">
+</div>
+</pre>
+            </div>
+            <!-- server_response -->
+
+        </div>
+        <!-- body -->
+
+        <div id="footer">
+        </div>
+
+    </div>
+    <!-- container -->
+
+
+</body>

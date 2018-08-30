@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Parse ORE</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script type="text/javascript">
+
+
+function getValueWithDefault(v, default_value) {
+  /*
+  Return default if v is not a value
+  */
+  if ((v == null) ||
+      (typeof v == 'undefined') ||
+      (v === "")) {
+    return default_value;
+  }
+  return v;
+}
+
+
+function getServiceUrl(operation, version, source_element) {
+  source_element = getValueWithDefault(source_element, '#in_baseurl');
+  version = getValueWithDefault(version, "v2");
+  console.log("source_element = " + source_element);
+  console.log("version = " + version);
+  console.log("operation = " + operation);
+  var url = $(source_element).val();
+  if (! url.endsWith("/") ) {
+    url += "/"
+  }
+  url = url + version + "/" + operation + "/";
+  console.log("url = " + url);
+  return url;
+}
+
+
+function getProxyUrl() {
+  var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
+  proxy += "/__ajaxproxy/";
+  return proxy;  
+}
+
+
+// Generate a curl command that can perform the operation
+function generateCurl(url) {
+  var res = "curl -k \"" + url + "\" | xml fo"
+  return res
+}
+
+function doProcessInfo(xml, dest_element) {
+
+}
+
+
+function doRetrieveInfo(pid, target1, target2) {
+  var url = getServiceUrl("meta", "v2", "#in_baseurl");
+  var proxyurl = getProxyUrl() + url + URLencode(pid);
+  console.log("target = " + target1);
+  $(target1).text("...");
+  $.ajax({
+    dataType: "xml",
+    url: proxyurl,
+    async: true,
+    success: function(response) {
+      console.log(response)
+      $(target1).text("ok");
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      $(target1).text(textStatus);
+    }
+  });
+
+}
+
+/*
+function processXML(xml) {
+  var table = $("#extracted_values");
+  table.append("<tr><th>Node</th><th>URL</th></tr>");
+  $(xml).find("objectLocation").each( function() {
+    var url = $(this).find("url").text();
+    url = "<td><a target='_blank' href='"+url+"'>"+url+"</a></td>";
+    var node ="<td>" + $(this).find("nodeIdentifier").text() + "</td>";
+    table.append("<tr>" + node + url + "</tr>");
+  });
+}
+*/
+
+//Render the parsed ORE document
+function renderOREaggregates(data, dest_element) {
+  console.log(data);
+  $(dest_element).append($('<p>').text("All Aggregates"));
+  var table = $("<table>");
+  var i = 0
+  var row = $('<tr>');
+  row.append($('<th>').text("#"));
+  row.append($('<th>').text("PID"));
+  row.append($('<th>').text("SysMeta"));
+  row.append($('<th>').text("formatId"));
+  data['aggregated'].forEach( element => {
+    var row = $('<tr>');
+    row.append($('<td>').text(i));
+    row.append($('<td>').text(element));
+    row.append($('<td>', {id:'agg_' + i}).text('ooo'));
+    row.append($('<td>', {id:'agg_url_' + i}).text(''));
+    table.append(row);
+    i += 1;
+  });
+  $(dest_element).append(table);
+  i = 0
+  data['aggregated'].forEach( element => {
+    doRetrieveInfo(element, '#agg_'+i, '#agg_url_'+i);
+    i += 1;
+  });
+  $(dest_element).append($('<p>').text("Metadata Aggregates"));
+  var table = $("<table>");
+  var i = 0
+  data['science_metadata'].forEach( element => {
+    var row = $('<tr>');
+    row.append($('<td>').text(i));
+    row.append($('<td>').text(element));
+    table.append(row);
+    i += 1;
+  });
+  $(dest_element).append(table);
+  $(dest_element).append($('<p>').text("Data Aggregates"));
+  var table = $("<table>");
+  var i = 0
+  data['science_data'].forEach( element => {
+    var row = $('<tr>');
+    row.append($('<td>').text(i));
+    row.append($('<td>').text(element));
+    table.append(row);
+    i += 1;
+  });
+  $(dest_element).append(table);
+  var pre = $('<pre>');
+  var text = "";
+  data['aggregated'].forEach( element => {
+    text += element + "\n";
+  });
+  pre.text(text);
+  $(dest_element).append(pre);
+}
+
+// Update UI elements in response to update events
+function doEncoding() {
+  var val = $("#it_pid").val();
+  if (val.length == 0) {
+    clearUI();
+    return;
+  }
+
+  var uval = URLencode(val);
+  $("#url_encoded").text(uval);
+
+  var qprefix = "v2/";
+  var baseurl = $("#in_baseurl").val();
+  remember(val, baseurl);
+
+  if (! baseurl.endsWith("/") ) {
+    baseurl += "/"
+  }
+
+  var url = getServiceUrl("object","v2", "#in_baseurl");
+  url = url + URLencode(val);
+  // get object
+  //rmapval = "object/";
+  //url = baseurl + qprefix + rmapval + URLencode(val);
+  $("#get_url").text(url);
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+  $("#bt_go").click( function() {
+
+    url = $("#get_url").text();
+    getORE(url, renderOREaggregates, "#document_ore");
+
+  })
+
+  $("#it_pid").keyup(function() {
+     doEncoding();
+   });
+
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header">
+    <p id="index"></p>
+    <h1>CNRead.getSystemMetadata</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+
+<div id="encoder">
+<div class="help">
+<p>Given an identifier, reslve, get system metadata, retrieve index document, and retrieve object.</p>
+</div>
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+<p>
+  <span class="label">PID: </span>
+  <input type="text" id="it_pid" size="80" value="" />
+</p>
+<p>
+  <span class="label">Encoded PID: </span>
+  <span class="output help" id="url_encoded"></span>
+</p>
+<div class="outputrow">
+  <p>
+  <span class="label">Request:&nbsp;</span>
+  <span class="output" id="q_operation"></span>
+  </p>
+</div>
+<p>
+  <input type="button" id="bt_go" value="Go" />
+</p>
+</div><!-- encoder -->
+
+
+<div id="document_object">
+<p>ORE Objecrt</p>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:&nbsp;</span>
+  <span class="output" id="get_url"></span>
+  </p>
+</div>
+<pre>
+<div class="output" id="document_ore">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+</div> <!-- body -->
+<div id="footer">
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

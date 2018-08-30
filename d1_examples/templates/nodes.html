@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CNCore.listNodes()</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.xpath.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/stupidtable.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+
+<script type="text/javascript">
+
+
+function nodeVersions(xml) {
+	var versions = [];
+	$(xml).find("service").each( function() {
+		var v = $(this).attr("version");
+		if (versions.indexOf(v) < 0) {
+			versions.push(v);
+		}
+	});
+	return versions;
+}
+
+
+function processXML(xml) {
+  var table = $("#extracted_values");
+  var th = "<th data-sort='string'>Type</th>";
+  th += "<th data-sort='string'>Node ID</th>";
+  th += "<th>Versions</th>"
+  th += "<th data-sort='string'>Base URL</th>";
+  th += "<th data-sort='string'>IP</th>";
+  th += "<th data-sort='string-ins'>Last harvest</th>";
+  table.append("<thead><tr>" + th + "</tr></thead>");
+  table.append("<tbody>")
+  $(xml).find("node").each( function() {
+    var nodeid = $(this).find("identifier").text();
+    var url = $(this).find("baseURL").text();
+    var ntype = $(this).attr("type");
+    var urlparts = parseURL(url);
+    var ip = NSLookup("ip_" + urlparts.hostname, urlparts.hostname);
+    var last_harvest = '';
+    if (ntype == "mn") {
+       last_harvest = $(this).find("lastHarvested").text()   	
+    }
+    var versions = nodeVersions(this);
+    var td = "<td>" + ntype + "</td>";
+    td += "<td>" + nodeid + "</td>";
+    td += "<td>" + versions.join() + "</td>";
+    td += "<td>" + url + "</td>";
+    td += "<td id='ip_" + urlparts.hostname + "'></td>";
+    td += "<td>" + last_harvest + "</td>";
+    table.append("<tr>" + td + "</tr>");
+  });
+  table.stupidtable();
+}
+
+
+// Generate a curl command that can perform the operation
+function generateCurl(url) {
+  var res = "curl -k \"" + url + "\" | xml fo"
+  return res
+}
+
+
+// Update UI elements in response to update events
+function doEncoding() {
+
+  var val = "";  
+  var qprefix = "v2/";
+  var baseurl = $("#in_baseurl").val();
+  remember(null, baseurl);
+
+  if (! baseurl.endsWith("/") ) {
+    baseurl += "/"
+  }
+
+  var rmapval = "node/";
+  $("#q_operation").text(qprefix + rmapval + val);
+  var url = baseurl + qprefix + rmapval + URLencode(val);
+  $("#a_operation").text(url);
+  $('#curl_operation').text( generateCurl(url) );
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+  enableEnterKeyAction();
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header">
+  <p id="index"></p>
+  <h1>CNCore.listNodes</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+    
+<div id="encoder">
+<div class="help">
+<p>List nodes in the environment using the CN 
+<a href='https://releases.dataone.org/online/api-documentation-v1.2.0/apis/CN_APIs.html#CNCore.listNodes'>
+listNodes()</a> method on a Coordinating Node.</p>
+<p>Hit &lt;Enter&gt; or click on the green URL to invoke the call.</p>
+</div>
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+<div class="outputrow">
+  <p>
+  <span class="label">Request:</span>
+  <span class="output" id="q_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:</span>
+  <span class="output url" id="a_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">cURL:</span>
+  <span class="output" id="curl_operation"></span>
+  </p>
+</div>
+
+</div><!-- encoder -->
+
+<div id="server_response">
+<p>Server Response</p>
+<table id="extracted_values">
+</table>
+<pre>
+<div class="output" id="xml_output">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+</div> <!-- body -->
+
+<div id="footer">
+
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

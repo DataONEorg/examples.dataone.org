@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CNRead.getSystemMetadata()</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.xpath.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/stupidtable.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script type="text/javascript">
+
+
+// Generate a curl command that can perform the operation
+function generateCurl(url) {
+  var res = "curl -k \"" + url + "\" | xml fo"
+  return res
+}
+
+
+// Update UI elements in response to update events
+function doEncoding() {
+  var val = $("#it_pid").val();
+  if (val.length == 0) {
+    clearUI();
+    return;
+  }
+  
+  var uval = URLencode(val);
+  $("#url_encoded").text(uval);
+  
+  var qprefix = "v2/";
+  var baseurl = $("#in_baseurl").val();
+  remember(val, baseurl);
+
+  if (! baseurl.endsWith("/") ) {
+    baseurl += "/"
+  }
+  
+  var rmapval = "meta/";
+  $("#q_operation").text(qprefix + rmapval + val);
+  var url = baseurl + qprefix + rmapval + URLencode(val);
+  $("#a_operation").text(url);
+  $('#curl_operation').text( generateCurl(url) );
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+  enableEnterKeyAction();
+
+  $("#it_pid").keyup(function() {
+     doEncoding();
+   });
+
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header"> 
+    <p id="index"></p>
+    <h1>CNRead.getSystemMetadata</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+    
+<div id="encoder">
+<div class="help">
+<p>Given an identifier, retrieve its system metadata using the  
+<a href='https://releases.dataone.org/online/api-documentation-v1.2.0/apis/CN_APIs.html#CNRead.getSystemMetadata'>
+CNRead.getSystemMetadata()</a> method on a Coordinating Node.</p>
+<p>Select the environment and enter a PID to lookup. Hit &lt;Enter&gt; or click on the green URL to invoke the call.</p>
+</div>
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+<p>
+  <span class="label">PID: </span>
+  <input type="text" id="it_pid" size="80" value="" />
+</p>
+<p>
+  <span class="label">Encoded PID: </span>
+  <span class="output help" id="url_encoded"></span>
+</p>
+<div class="outputrow">
+  <p>
+  <span class="label">Request:&nbsp;</span>
+  <span class="output" id="q_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:&nbsp;</span>
+  <span class="output url" id="a_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">cURL:&nbsp;</span>
+  <span class="output" id="curl_operation"></span>
+  </p>
+</div>
+
+</div><!-- encoder -->
+
+<div id="server_response">
+<p>Server Response</p>
+<ul id="object_urls">
+</ul>
+<pre>
+<div class="output" id="xml_output">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+</div> <!-- body -->
+
+<div id="footer">
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

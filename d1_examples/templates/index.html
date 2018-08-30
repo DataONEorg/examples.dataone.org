@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DataONE API Examples</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+<script type="text/javascript">
+
+jQuery(document).ready(function($) {
+
+});
+</script>
+</head>
+<body>
+  <div id="container">
+    <div id="body">
+      <h1>Example API Calls</h1>
+      <p>These pages provide examples of basic interactions with DataONE
+      Coordinating Nodes through the service interfaces.</p>
+      <p>Full details of the DataONE APIs are available at:</p>
+      <ul>
+        <li>
+          <a href="https://purl.dataone.org/architecture">
+             Current release API docs
+          </a>
+        </li>
+        <li>
+          <a href="https://purl.dataone.org/architecture-dev/index.html">
+          Development version API docs
+          </a>
+        </li>
+      </ul>
+      <p>Service Examples:</p>
+      <ul>
+        <li><a href="nodes.html">CNCore.listNodes()</a> List nodes in environment</li>
+        <li><a href="listformats.html">CNCore.listFormats()</a> List object formats in environment</li>
+        <li><a href="listobjects.html">CNRead.listObjects()</a> List objects on a Node</li>
+        <li><a href="resolve.html">CNRead.resolve()</a>Resolve an object</li>
+        <li><a href="sysmeta.html">CNRead.getSystemMetadata()</a> Get system metadata for an object</li>
+        <li><a href="queryfields.html">CNRead.queryEngineDescription()</a>List the fields available in the solr index</li>
+        <li><a href="querycn.html">CNRead.query()</a>Query a node solr index</li>
+        <li><a href="queryfieldvalues.html">CNRead.queryTerms()</a>Terms and term frequency for a field</li>
+        <li><a href="resource_find.html">Examine package using solr index</a></li>
+        <li><a href="solrencode.html">Encode solr query terms</a></li>
+        <li><a href="echo_indexed_object.html">Echo indexed object</a></li>
+        <li><a href="pid.html">Load PID</a></li>
+        <li><a href="ore.html">Examine ORE</a></li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

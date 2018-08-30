@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CNRead.query()</title>
+<style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/date.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+  <script type="text/javascript">
+
+
+
+// Update UI elements in response to update events
+function doEncoding() {
+  var params={};
+  params['start'] = $("#it_start").val();
+  params['rows'] = $("#it_rows").val();
+  var general_query = $("#it_q").val();
+  params['fl'] = $("#it_fl").val();
+
+  var qterms={};
+  qterms['formatId'] = $("#it_formatid").val();
+  qterms['title'] = $("#it_title").val();
+  qterms['datasource'] = $("#it_datasource").val();
+  qterms['formatId'] = $("#it_formatid").val();
+  qterms['id'] = $("#it_id").val();
+  qterms['__dateUploaded'] = dateQuery( $("#it_dateUploaded_a").val(),
+                                      $("#it_dateUploaded_b").val() );
+  qterms['__dateModified'] = dateQuery( $("#it_dateModified_a").val(),
+                                      $("#it_dateModified_b").val() );
+
+  var query = addSolrQueryParams(general_query, qterms);
+
+  params['q'] = query;
+  $("#y_operation").text(query);
+
+  var qprefix = "v2/";
+  var baseurl = $("#in_baseurl").val();
+  remember(null, baseurl);
+
+  if (! baseurl.endsWith("/") ) {
+    baseurl += "/"
+  }
+  
+  var rmapval = "query/solr/";
+  var op = addUrlQueryParams(qprefix + rmapval, params, false);
+  $("#q_operation").text(op);
+
+  var url = addUrlQueryParams(baseurl + qprefix + rmapval, params, true);
+  $("#a_operation").text(url);
+  $('#curl_operation').text( generateCurl(url) );
+}
+
+
+//Document MAIN
+jQuery(document).ready(function($) {
+  serverList();
+  initialize();
+  enableEnterKeyAction();
+
+  $('input[id^="it_"]').keyup(function() {
+     doEncoding();
+   });
+
+});
+</script>
+
+</head>
+
+<body>
+  <div id="container">
+  <div id="header"> 
+    <p id="index"></p>
+    <h1>CNRead.query()</h1>
+  </div>  <!-- header -->
+
+  <div id="body">
+    
+<div id="encoder">
+<div class="help">
+<p>Perform a search against the solr  
+<a href='https://releases.dataone.org/online/api-documentation-v1.2.0/apis/CN_APIs.html#CNRead.query'>
+CNRead.query()</a> service on a Coordinating Node.</p>
+<p>Select the environment and specify optional slicing parameters and search 
+terms. The resulting solr query and its encoding in different forms will be 
+shown. </p>
+<p>Hit &lt;Enter&gt; or click on the green URL to invoke the call.</p>
+</div>
+<p>
+  <span class="label">Environment:</span>
+  <select id="sel_environment">
+  </select>
+</p>
+<p>
+  <span class="label">Base URL: </span>
+  <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+</p>
+<p>
+  <span class="label">Q FormatId: </span>
+  <input type="text" id="it_formatid" size="80" value="" />
+</p>
+<p>
+  <span class="label">Q Title: </span>
+  <input type="text" id="it_title" size="80" value="" />
+</p>
+<p>
+  <span class="label">Q Node Id: </span>
+  <input type="text" id="it_datasource" size="80" value="" />
+</p>
+<p>
+  <span class="label">Q PID: </span>
+  <input type="text" id="it_id" size="80" value="" />
+</p>
+<p>
+  <span class="label">Q Uploaded: </span>
+  <input type="text" id="it_dateUploaded_a" size="35" value="" />
+  TO
+  <input type="text" id="it_dateUploaded_b" size="35" value="NOW" />
+</p>
+<p>
+  <span class="label">Q modified: </span>
+  <input type="text" id="it_dateModified_a" size="35" value="" />
+  TO
+  <input type="text" id="it_dateModified_b" size="35" value="NOW" />
+</p>
+<p>
+  <span class="label">Q Other: </span>
+  <input type="text" id="it_q" size="80" value="*:*" />
+</p>
+<p>
+  <span class="label">Start: </span>
+  <input type="text" id="it_start" size="10" value="0" />
+</p>
+<p>  
+  <span class="label">Count: </span>
+  <input type="text" id="it_rows" size="10" value="10" />
+</p>
+<p>
+  <span class="label">Fields</span>
+  <input type="text" id="it_fl" size="80" value="id,title,formatId" />
+</p>
+<div class="outputrow">
+  <p>
+  <span class="label">Query:</span>
+  <span class="output" id="y_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">Request:</span>
+  <span class="output" id="q_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">URL:</span>
+  <span class="output url" id="a_operation"></span>
+  </p>
+</div>
+<div class="outputrow">
+  <p>
+  <span class="label">cURL:</span>
+  <span class="output" id="curl_operation"></span>
+  </p>
+</div>
+
+</div><!-- encoder -->
+
+<div id="server_response">
+<p>Server Response</p>
+<ul id="object_urls">
+</ul>
+<pre>
+<div class="output" id="xml_output">
+</div>
+</pre>
+</div> <!-- server_response -->
+
+</div> <!-- body -->
+
+<div id="footer">
+</div>
+
+</div> <!-- container -->
+</body>
+</html>

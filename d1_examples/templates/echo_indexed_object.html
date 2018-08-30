@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CNDiagnostic.echoIndexedObject()</title>
+    <!--
+      queryEngine (string) – A valid query engine name as reported by 
+        listQueryEngines() Transmitted as a UTF-8 String as a Param part of the 
+        MIME multipart/mixed message.
+      sysmeta (Types.SystemMetadata) – A SystemMetadata object that passes the 
+        echoSystemMetadata diagnostic. Transmitted as an UTF-8 encoded XML 
+        structure for the respective type as defined in the DataONE types 
+        schema, as a File part of the MIME multipart/mixed message.
+      object (bytes) – A document (e.g. science metadata or resource map) that 
+        is to be evalauted for indexing. Transmitted as an UTF-8 encoded XML 
+        structure for the respective type as defined in the DataONE types 
+        schema, as a File part of the MIME multipart/mixed message.     
+    -->
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script type="text/javascript">
+    
+      function processXML(xml) {
+        var sxml = new XMLSerializer();
+        var doc = sxml.serializeToString(xml);
+        $('#xml_output').text(formatXml(doc, false));
+      }
+
+      // Update UI elements in response to update events
+      function doEncoding() {
+
+        var val = "";
+        var qprefix = "v2/";
+        var baseurl = $("#in_baseurl").val();
+        remember(null, baseurl);
+
+        if (! baseurl.endsWith("/")) {
+          baseurl += "/";
+        }
+
+        var rmapval = "diag/object/";
+        $("#q_operation").text(qprefix + rmapval + val);
+        var url = baseurl + qprefix + rmapval + URLencode(val);
+        $("#a_operation").text(url);
+        //$('#curl_operation').text(generateCurl(url));
+      }
+      
+      
+      function postContent() {
+        $('#xml_output').empty();
+        $('#xml_output').text("Working...");
+        $("#extracted_values").empty();
+
+        var data = {'queryEngine': 'solr',
+                    'sysmeta': $("#in_sysmeta").val(),
+                    'object': $("#in_doc").val() 
+                    }
+        
+        if (data.sysmeta.length < 1) {
+          $('#xml_output').text("Oops - system metadata is required");
+          return;
+        }
+
+        //url = "https://cn-dev.test.dataone.org/cn/v2/diag/object"
+        url = $("#a_operation").text();
+        log.info("Loading " + url);
+        var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
+        proxy += "/__ajaxproxy/";
+        var proxyurl = proxy + url;
+
+        $.ajax({
+          type: 'POST',
+          url: proxyurl,
+          dataType: 'xml',
+          data: data,
+          async: true,
+          success: function(xml) {
+            $('#xml_output').empty();
+            processXML(xml);
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            $('#xml_output').empty();
+            if (jqXHR.status == 303) {
+              log.info("Success, but redirect");
+              var xml = $.parseXML(jqXHR.responseText);
+              processXML(xml);
+            } else {
+              log.error("Request failed: " + proxyurl);
+              var msg = "Error(" + jqXHR.status + "): " + errorThrown;
+              log.error(msg);
+              msg += "\n";
+              msg += jqXHR.responseText;
+              $('#xml_output').text(msg);
+            }
+          }
+        });
+        
+      }
+      
+      
+      function showXmlData(xml, target) {
+        var oParser = new DOMParser();
+        var oDOM = oParser.parseFromString(xml, "text/xml");
+
+        var sxml = new XMLSerializer();
+        var doc = sxml.serializeToString(xml);
+        $(target).val(formatXml(doc, false));        
+        // print the name of the root element or error message
+        dump(oDOM.documentElement.nodeName == "parsererror" ? "error while parsing" : oDOM.documentElement.nodeName);
+      }
+      
+      
+      function loadXmlData(url, target) {
+        console.log("loadXmlData");
+        $(target).val('');
+        $.ajax({
+          type: 'GET',
+          url: url,
+          dataType: 'xml',
+          async: true,
+          _target: target,
+          success: function(xml) {
+            console.log(this._target);
+            $(this._target).val('');
+            showXmlData(xml, target);
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            $(target).empty();
+            if (jqXHR.status == 303) {
+              log.info("Success, but redirect");
+              var xml = $.parseXML(jqXHR.responseText);
+              showXmlData(xml);
+            } else {
+              log.error("Request failed: " + proxyurl);
+              var msg = "Error(" + jqXHR.status + "): " + errorThrown;
+              log.error(msg);
+              msg += "\n";
+              msg += jqXHR.responseText;
+              $(target).val(msg);
+            }
+          }
+        });        
+      }
+      
+      
+      function loadSystemMetadataFromURL() {
+        var url = $("#in_sys_url").val();
+        loadXmlData(url, "#in_sysmeta");
+      }
+      
+      
+      function loadObjectFromURL() {
+        var url = $("#in_doc_url").val();
+        loadXmlData(url, "#in_doc");        
+      }
+      
+      
+      function initialize() {
+        log.setLevel(LOG_LEVEL, false);
+        enableProxy();
+        header();
+        clearUI();
+        recall();
+        doEncoding();
+        $('#sel_environment').on('change', function() {
+          $("#in_baseurl").val(this.value);
+          doEncoding();
+        });
+        $("#toggle_help").click(function() {
+          $(".help").toggle();
+        });
+        $(".url").click(function() {
+          postContent();
+        });
+        $("#sel_environment").focus();
+        $(document).keypress(function(e) {
+          if (e.which === 49 && e.ctrlKey) {
+            $("#nav_index").focus();
+          }
+        });
+        $("#btn_load_sys_url").click(loadSystemMetadataFromURL);
+        $("#btn_load_doc_url").click(loadObjectFromURL);
+
+      }
+      
+
+      //Document MAIN
+      jQuery(document).ready(function($) {
+        serverList();
+        initialize();
+        enableEnterKeyAction();
+      });
+    </script>
+
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="header">
+        <p id="index"> </p>
+        <h1>CNDiagnostic.echoIndexedObject</h1>
+      </div>
+      <!-- header -->
+
+      <div id="body">
+
+        <div id="encoder">
+          <div class="help">
+            <p>
+              Submit a document and associated system metadata to the 
+              <a href='https://releases.dataone.org/online/api-documentation-v2.0/apis/CN_APIs.html#CNDiagnostic.echoIndexedObject'> 
+                CNDiagnostic.echoIndexedObject()</a> 
+              method on a Coordinating Node.
+            </p>
+            <p>
+              Hit &lt;Enter&gt; or click on the green URL to invoke the call.
+            </p>
+          </div>
+          <p>
+            <span class="label">Environment:</span>
+            <select id="sel_environment"> </select>
+          </p>
+          <p>
+            <span class="label">Base URL: </span>
+            <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+          </p>
+          <p>
+            <span class="label">System Metadata:</span>
+            <textarea id="in_sysmeta" rows="25" cols="132">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;d1_v2.0:systemMetadata xmlns:d1_v2.0=&quot;http://ns.dataone.org/service/types/v2.0&quot; xmlns:d1=&quot;http://ns.dataone.org/service/types/v1&quot;&gt;
+  &lt;serialVersion&gt;1&lt;/serialVersion&gt;
+  &lt;identifier&gt;seadva-75293493-b79e-4581-a6a0-92d084bd05cf&lt;/identifier&gt;
+  &lt;formatId&gt;FGDC-STD-001-1998&lt;/formatId&gt;
+  &lt;size&gt;2934&lt;/size&gt;
+  &lt;checksum algorithm=&quot;SHA-1&quot;&gt;7621c9bb6a7b3b3bc304400b67e002431e2cd7f9&lt;/checksum&gt;
+  &lt;submitter&gt;SEAD&lt;/submitter&gt;
+  &lt;rightsHolder&gt;NCED&lt;/rightsHolder&gt;
+  &lt;accessPolicy&gt;
+    &lt;allow&gt;
+      &lt;subject&gt;public&lt;/subject&gt;
+      &lt;permission&gt;read&lt;/permission&gt;
+    &lt;/allow&gt;
+  &lt;/accessPolicy&gt;
+  &lt;replicationPolicy replicationAllowed=&quot;false&quot;/&gt;
+  &lt;archived&gt;false&lt;/archived&gt;
+  &lt;dateUploaded&gt;2016-06-16T21:10:50.654+00:00&lt;/dateUploaded&gt;
+  &lt;dateSysMetadataModified&gt;2016-06-16T21:10:50.654+00:00&lt;/dateSysMetadataModified&gt;
+  &lt;originMemberNode&gt;urn:node:mnTestSEAD&lt;/originMemberNode&gt;
+  &lt;authoritativeMemberNode&gt;urn:node:mnTestSEAD&lt;/authoritativeMemberNode&gt;
+  &lt;replica&gt;
+    &lt;replicaMemberNode&gt;urn:node:mnTestSEAD&lt;/replicaMemberNode&gt;
+    &lt;replicationStatus&gt;completed&lt;/replicationStatus&gt;
+    &lt;replicaVerified&gt;2016-07-11T22:33:15.846+00:00&lt;/replicaVerified&gt;
+  &lt;/replica&gt;
+  &lt;replica&gt;
+    &lt;replicaMemberNode&gt;urn:node:cnStage&lt;/replicaMemberNode&gt;
+    &lt;replicationStatus&gt;completed&lt;/replicationStatus&gt;
+    &lt;replicaVerified&gt;2016-07-11T22:33:15.854+00:00&lt;/replicaVerified&gt;
+  &lt;/replica&gt;
+&lt;/d1_v2.0:systemMetadata&gt;</textarea>
+            <span class="label">Load from URL:</span>        
+            <input id="in_sys_url" size="80" value="" />
+            <input id="btn_load_sys_url" type="button" value="Load" />        
+          </p>
+          <p>
+            <span class="label">Document:</span>
+            <textarea id="in_doc" rows="25" cols="132">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt;
+&lt;metadata xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:noNamespaceSchemaLocation=&quot;http://www.fgdc.gov/metadata/fgdc-std-001-1998.xsd&quot;&gt;
+  &lt;idinfo&gt;
+    &lt;citation&gt;
+      &lt;citeinfo&gt;
+        &lt;origin&gt;Bode, Collin (collin@berkeley.edu)&lt;/origin&gt;
+        &lt;origin&gt;Power, Mary E.&lt;/origin&gt;
+        &lt;pubdate&gt;20160616&lt;/pubdate&gt;
+        &lt;title&gt;Eel River Flipchart&lt;/title&gt;
+        &lt;onlink&gt;http://dx.doi.org/10.5072/FK22J6F011&lt;/onlink&gt;
+      &lt;/citeinfo&gt;
+    &lt;/citation&gt;
+    &lt;descript&gt;
+      &lt;abstract&gt;This is a 34 page flipchart of the Angelo Reserve. Each page is an 8.5x11 map of a river segment. The maps show the location of the highest accumulated streamflow (using DEM) as the river, even though the channel is wider, and use the vegetative canopy DEM colored by vegetation height. Note the decision to use canopy instead of the traditional bare-earth is to provide visual references while out in the field. Bare-earth provides little help when maps are zoomed in this close. Laminated versions will be availible at the ACCR Science Center to be used during field sampling. Sampling sites can be drawn directly on the maps with a sharpie then removed later using alcohol. Marked up maps are to be either copied using the xerox machine, or scanned. Scanned versions can be sent to Collin Bode to convert the points into a GIS coverage.&lt;/abstract&gt;
+      &lt;purpose&gt;Data related to Sustainability Science Research&lt;/purpose&gt;
+    &lt;/descript&gt;
+    &lt;timeperd&gt;
+      &lt;timeinfo&gt;
+        &lt;rngdates&gt;
+          &lt;begdate&gt;20160616&lt;/begdate&gt;
+          &lt;enddate&gt;20160616&lt;/enddate&gt;
+        &lt;/rngdates&gt;
+      &lt;/timeinfo&gt;
+      &lt;current&gt;ground condition&lt;/current&gt;
+    &lt;/timeperd&gt;
+    &lt;status&gt;
+      &lt;progress&gt;Complete&lt;/progress&gt;
+      &lt;update&gt;As needed&lt;/update&gt;
+    &lt;/status&gt;
+    &lt;spdom&gt;
+      &lt;bounding&gt;
+        &lt;westbc&gt;-180.0&lt;/westbc&gt;
+        &lt;eastbc&gt;180.0&lt;/eastbc&gt;
+        &lt;northbc&gt;90.0&lt;/northbc&gt;
+        &lt;southbc&gt;-90.0&lt;/southbc&gt;
+      &lt;/bounding&gt;
+    &lt;/spdom&gt;
+    &lt;keywords&gt;
+      &lt;theme&gt;
+        &lt;themekt&gt;None&lt;/themekt&gt;
+        &lt;themekey&gt;None&lt;/themekey&gt;
+      &lt;/theme&gt;
+      &lt;place&gt;
+        &lt;placekt&gt;None&lt;/placekt&gt;
+        &lt;placekey&gt;None&lt;/placekey&gt;
+      &lt;/place&gt;
+      &lt;temporal&gt;
+        &lt;tempkt&gt;None&lt;/tempkt&gt;
+        &lt;tempkey&gt;None&lt;/tempkey&gt;
+      &lt;/temporal&gt;
+    &lt;/keywords&gt;
+    &lt;accconst&gt;Public&lt;/accconst&gt;
+    &lt;useconst&gt;Default&lt;/useconst&gt;
+  &lt;/idinfo&gt;
+  &lt;metainfo&gt;
+    &lt;metd&gt;20160616&lt;/metd&gt;
+    &lt;metc&gt;
+      &lt;cntinfo&gt;
+        &lt;cntperp&gt;
+          &lt;cntper&gt;Bode, Collin (collin@berkeley.edu)&lt;/cntper&gt;
+        &lt;/cntperp&gt;
+        &lt;cntaddr&gt;
+          &lt;addrtype&gt;Mailing&lt;/addrtype&gt;
+          &lt;city&gt;Unknown&lt;/city&gt;
+          &lt;state&gt;Unknown&lt;/state&gt;
+          &lt;postal&gt;00000&lt;/postal&gt;
+        &lt;/cntaddr&gt;
+        &lt;cntvoice&gt;Unknown&lt;/cntvoice&gt;
+      &lt;/cntinfo&gt;
+    &lt;/metc&gt;
+    &lt;metstdn&gt;FGDC Standard for Digital Geospatial Metadata&lt;/metstdn&gt;
+    &lt;metstdv&gt;FGDC-STD-001-1998&lt;/metstdv&gt;
+  &lt;/metainfo&gt;
+&lt;/metadata&gt;</textarea><br />
+            <span class="label">Load from URL:</span>
+            <input id="in_doc_url" size="80" value="" />
+            <input id="btn_load_doc_url" type="button" value="Load" />        
+          </p>
+          <div class="outputrow">
+            <p>
+              <span class="label">Request:</span>
+              <span class="output" id="q_operation"> </span>
+            </p>
+          </div>
+          <div class="outputrow">
+            <p>
+              <span class="label">URL:</span>
+              <span class="output url" id="a_operation"> </span>
+            </p>
+          </div>
+        </div><!-- encoder -->
+
+        <div id="server_response">
+          <p>
+            Server Response
+          </p>
+          <table id="extracted_values"> </table>
+          <pre>
+<div class="output" id="xml_output">
+</div>
+          </pre>
+        </div>
+        <!-- server_response -->
+
+      </div>
+      <!-- body -->
+
+      <div id="footer">
+
+      </div>
+
+    </div>
+    <!-- container -->
+  </body>
+</html>

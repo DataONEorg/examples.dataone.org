@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CNCore.listFormats()</title>
+  <style>
+    @import "{{ url_for('static', filename='css/default.css') }}";
+  </style>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/loglevel.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/encode.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script type="text/javascript">
+      function processXML(xml) {
+        var table = $("#extracted_values");
+        table.append("<tr><th>Type</th><th>Format ID</th></tr>");
+        $(xml).find("objectFormat").each(function() {
+          var url = $(this).find("formatId").text();
+          var ftype = $(this).find("formatType").text();
+          table.append("<tr><td>" + ftype + "</td><td>" + url + "</td></tr>");
+        });
+        sortTable(table, "asc");
+      }
+
+      // Update UI elements in response to update events
+      function doEncoding() {
+
+        var val = "";
+        var qprefix = "v2/";
+        var baseurl = $("#in_baseurl").val();
+        remember(null, baseurl);
+
+        if (! baseurl.endsWith("/")) {
+          baseurl += "/";
+        }
+
+        var rmapval = "formats/";
+        $("#q_operation").text(qprefix + rmapval + val);
+        var url = baseurl + qprefix + rmapval + URLencode(val);
+        $("#a_operation").text(url);
+        $('#curl_operation').text(generateCurl(url));
+      }
+
+      //Document MAIN
+      jQuery(document).ready(function($) {
+        serverList();
+        initialize();
+        enableEnterKeyAction();
+      });
+    </script>
+
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="header">
+        <p id="index"> </p>
+        <h1>CNCore.listFormats</h1>
+      </div>
+      <!-- header -->
+
+      <div id="body">
+
+        <div id="encoder">
+          <div class="help">
+            <p>
+              List the object formats available on the selected Coordinating 
+              Node using the 
+              <a href='https://releases.dataone.org/online/api-documentation-v1.2.0/apis/CN_APIs.html#CNCore.listFormats'> 
+                CNCore.listFormats()</a> 
+              method on a Coordinating Node.
+            </p>
+            <p>
+              Hit &lt;Enter&gt; or click on the green URL to invoke the call.
+            </p>
+          </div>
+          <p>
+            <span class="label">Environment:</span>
+            <select id="sel_environment"> </select>
+          </p>
+          <p>
+            <span class="label">Base URL: </span>
+            <input id="in_baseurl" size="80" value="https://cn.dataone.org/cn" />
+          </p>
+          <div class="outputrow">
+            <p>
+              <span class="label">Request:</span>
+              <span class="output" id="q_operation"> </span>
+            </p>
+          </div>
+          <div class="outputrow">
+            <p>
+              <span class="label">URL:</span>
+              <span class="output url" id="a_operation"> </span>
+            </p>
+          </div>
+          <div class="outputrow">
+            <p>
+              <span class="label">cURL:</span>
+              <span class="output" id="curl_operation"> </span>
+            </p>
+          </div>
+
+        </div><!-- encoder -->
+
+        <div id="server_response">
+          <p>
+            Server Response
+          </p>
+          <table id="extracted_values"> </table>
+          <pre>
+<div class="output" id="xml_output">
+</div>
+</pre>
+        </div>
+        <!-- server_response -->
+
+      </div>
+      <!-- body -->
+
+      <div id="footer">
+
+      </div>
+
+    </div>
+    <!-- container -->
+  </body>
+</html>
