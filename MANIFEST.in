@@ -1,0 +1,3 @@
+graft d1_examples/static
+graft d1_examples/templates
+global-exclude *.pyc
