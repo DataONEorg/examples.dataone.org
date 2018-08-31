@@ -139,22 +139,12 @@ def create_app(test_config=None):
     return jsonify(APPINFO)
 
 
-  #@app.route('/')
-  #def root_default():
-  #  return render_template("index.html")
-
   @app.route('/', defaults={'path': 'index.html'})
   @app.route('/<path:path>')
   def root(path):
     if path == 'favicon.ico':
       return sendError('',request.method,'Not Found', 404)
     return render_template(path)
-
-#  @app.route('/<path:filename>')
-#  def root(filename):
-#    #app.LOG.debug("Serve from: %s", app_home_directory)
-#    return render_template(filename)
-#    #return send_from_directory(app_home_directory, filename, as_attachment=False)
 
 
   @app.route('/status/__ajaxproxy/<path:target>', methods=['GET', 'POST', ])

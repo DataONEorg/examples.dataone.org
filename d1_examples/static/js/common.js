@@ -263,7 +263,7 @@ function getJSON(url, processfunc) {
   log.info("Loading " + url);
   var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
   proxy += "/__ajaxproxy/";
-  var proxyurl = proxy + url;
+  var proxyurl = proxy + encodeURIComponent(url);
   $.ajax({
     type : "GET",
     url : proxyurl,
@@ -304,7 +304,7 @@ function getXML(url, processfunc, dest_element) {
   log.info("Loading " + url);
   var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
   proxy += "/__ajaxproxy/";
-  var proxyurl = proxy + url;
+  var proxyurl = proxy + encodeURIComponent(url);
   $.ajax({
     type : "GET",
     url : proxyurl,
