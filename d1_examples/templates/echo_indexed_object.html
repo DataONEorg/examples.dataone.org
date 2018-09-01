@@ -71,7 +71,7 @@
         log.info("Loading " + url);
         var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
         proxy += "/__ajaxproxy/";
-        var proxyurl = proxy + url;
+        var proxyurl = proxy + encodeURIcomponent(url);
 
         $.ajax({
           type: 'POST',
@@ -120,7 +120,7 @@
         $(target).val('');
         $.ajax({
           type: 'GET',
-          url: url,
+          url: encodeURIComponent(url),
           dataType: 'xml',
           async: true,
           _target: target,
