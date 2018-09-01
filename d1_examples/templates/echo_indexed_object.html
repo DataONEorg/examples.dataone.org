@@ -71,7 +71,7 @@
         log.info("Loading " + url);
         var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
         proxy += "/__ajaxproxy/";
-        var proxyurl = proxy + encodeURIcomponent(url);
+        var proxyurl = proxy + encodeURIComponent(url);
 
         $.ajax({
           type: 'POST',
