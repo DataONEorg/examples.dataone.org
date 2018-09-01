@@ -62,7 +62,7 @@ function doProcessInfo(xml, dest_element) {
 
 function doRetrieveInfo(pid, target1, target2) {
   var url = getServiceUrl("meta", "v2", "#in_baseurl");
-  var proxyurl = getProxyUrl() + url + URLencode(pid);
+  var proxyurl = getProxyUrl() + encodeURIComponent(url + URLencode(pid));
   console.log("target = " + target1);
   $(target1).text("...");
   $.ajax({
