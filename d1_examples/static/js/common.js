@@ -15,6 +15,13 @@ String.prototype.endsWith = function(suffix) {
 };
 
 
+function valueOrDefault(v, def) {
+  if (typeof v != 'undefined') {
+    return def;
+  }
+  return v;
+}
+
 function jq( myid ) {
   /*
   Escape an id value so that it can be used as a jquery ID selector
@@ -190,12 +197,15 @@ function remember(pid, baseurl) {
 
 function recall() {
   // if field already has a value, then don't override
-  var current_val = $("#it_pid").val();
-  if (! current_val.length > 0) {
-    var pid = localStorage.last_pid;
-    if (pid) {
-      $("#it_pid").val(pid);
-    }
+  try {
+    if (! current_val.length > 0) {
+      var pid = localStorage.last_pid;
+      if (pid) {
+        $("#it_pid").val(pid);
+      }
+    }    
+  } catch(err) {
+    console.log(err);
   }
   var last_environment = localStorage.last_environment;
   if (last_environment) {
