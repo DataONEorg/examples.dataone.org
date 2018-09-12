@@ -139,12 +139,20 @@ def create_app(test_config=None):
     return jsonify(APPINFO)
 
 
+
   @app.route('/', defaults={'path': 'index.html'})
   @app.route('/<path:path>')
   def root(path):
     if path == 'favicon.ico':
       return sendError('',request.method,'Not Found', 404)
     return render_template(path)
+
+
+  @app.route('/ore.html', defaults={'pid': ''})
+  @app.route('/ore.html/<path:pid>')
+  def oreProcess(pid):
+    logging.debug("ore.html, pid = " + pid)
+    return render_template('ore.html', pid=pid)
 
 
   @app.route('/status/__ajaxproxy/<path:target>', methods=['GET', 'POST', ])

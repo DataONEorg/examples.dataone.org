@@ -189,9 +189,13 @@ function remember(pid, baseurl) {
 }
 
 function recall() {
-  var pid = localStorage.last_pid;
-  if (pid) {
-    $("#it_pid").val(pid);
+  // if field already has a value, then don't override
+  var current_val = $("#it_pid").val();
+  if (! current_val.length > 0) {
+    var pid = localStorage.last_pid;
+    if (pid) {
+      $("#it_pid").val(pid);
+    }
   }
   var last_environment = localStorage.last_environment;
   if (last_environment) {

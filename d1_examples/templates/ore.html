@@ -59,25 +59,50 @@ function doProcessInfo(xml, dest_element) {
 
 }
 
+function doGetQueryCounts(pid, target) {
+  var url = getServiceUrl("query/solr", "v2", "");
+  var q = addSolrQueryParams("*:*",{"id":pid});
+  url = addUrlQueryParams(url, {"rows":0,"q":q}, false);
+  var proxyurl = getProxyUrl() + encodeURIComponent(url);
+  console.log("Request URL = " + url);
+  $(target).text("...");
+  $.ajax({
+    dataType: "xml",
+    url: proxyurl,
+    async: true,
+    success: function(xml) {
+      console.log(xml);
+      var nmatches = $(xml).find("result").attr("numFound");
+      $(target).text(nmatches);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      $(target).text(textStatus);
+    }
+  });
+
+}
+
 
 function doRetrieveInfo(pid, target1, target2) {
   var url = getServiceUrl("meta", "v2", "#in_baseurl");
   var proxyurl = getProxyUrl() + encodeURIComponent(url + URLencode(pid));
   console.log("target = " + target1);
   $(target1).text("...");
+  $(target2).text("...");
   $.ajax({
     dataType: "xml",
     url: proxyurl,
     async: true,
-    success: function(response) {
-      console.log(response)
+    success: function(xml) {
+      console.log(xml);
       $(target1).text("ok");
+      $(target2).text( $(xml).find("formatId").text());
     },
     error: function(jqXHR, textStatus, errorThrown) {
       $(target1).text(textStatus);
+      $(target2).text(errorThrown);
     }
   });
-
 }
 
 /*
@@ -102,21 +127,30 @@ function renderOREaggregates(data, dest_element) {
   var row = $('<tr>');
   row.append($('<th>').text("#"));
   row.append($('<th>').text("PID"));
-  row.append($('<th>').text("SysMeta"));
+  row.append($('<th>').text("SM?"));
+  row.append($('<th>').text("Index?"));
   row.append($('<th>').text("formatId"));
+  table.append(row);
   data['aggregated'].forEach( element => {
     var row = $('<tr>');
+    var sysm_url = getServiceUrl("meta","v2") + URLencode(element);
     row.append($('<td>').text(i));
     row.append($('<td>').text(element));
-    row.append($('<td>', {id:'agg_' + i}).text('ooo'));
-    row.append($('<td>', {id:'agg_url_' + i}).text(''));
+    //row.append($('<td>', {id:'agg_' + i}).text('ooo'));
+    var pid_a = $('<a>', {href:sysm_url, id:'agg_' + i}).text('ooo')
+    var sysm = $('<td>');
+    sysm.append(pid_a);
+    row.append(sysm);
+    row.append($('<td>', {id:'agg_idx_' + i}).text('ooo'));
+    row.append($('<td>', {id:'agg_fmt_' + i}).text('ooo'));
     table.append(row);
     i += 1;
   });
   $(dest_element).append(table);
   i = 0
   data['aggregated'].forEach( element => {
-    doRetrieveInfo(element, '#agg_'+i, '#agg_url_'+i);
+    doRetrieveInfo(element, '#agg_'+i, '#agg_fmt_'+i);
+    doGetQueryCounts(element, "#agg_idx_"+i);
     i += 1;
   });
   $(dest_element).append($('<p>').text("Metadata Aggregates"));
@@ -141,6 +175,7 @@ function renderOREaggregates(data, dest_element) {
     i += 1;
   });
   $(dest_element).append(table);
+  $(dest_element).append($('<p>').text("Plain list of aggregated identifiers:"));
   var pre = $('<pre>');
   var text = "";
   data['aggregated'].forEach( element => {
@@ -182,6 +217,7 @@ function doEncoding() {
 jQuery(document).ready(function($) {
   serverList();
   initialize();
+  doEncoding();
   $("#bt_go").click( function() {
 
     url = $("#get_url").text();
@@ -222,7 +258,7 @@ jQuery(document).ready(function($) {
 </p>
 <p>
   <span class="label">PID: </span>
-  <input type="text" id="it_pid" size="80" value="" />
+  <input type="text" id="it_pid" size="80" value="{{ pid }}" />
 </p>
 <p>
   <span class="label">Encoded PID: </span>
