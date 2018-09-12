@@ -197,6 +197,7 @@ function remember(pid, baseurl) {
 
 function recall() {
   // if field already has a value, then don't override
+  var current_val = $("#it_pid").val();
   try {
     if (! current_val.length > 0) {
       var pid = localStorage.last_pid;
