@@ -6,6 +6,7 @@ import logging
 import os
 from flask import Flask, request, Response, \
   send_from_directory, jsonify, render_template
+from flask_headers import headers
 import requests
 import requests.utils
 import urllib3.contrib.pyopenssl
@@ -142,6 +143,7 @@ def create_app(test_config=None):
 
   @app.route('/', defaults={'path': 'index.html'})
   @app.route('/<path:path>')
+  @headers({'Access-Control-Allow-Origin':'*'})
   def root(path):
     if path == 'favicon.ico':
       return sendError('',request.method,'Not Found', 404)
@@ -150,17 +152,20 @@ def create_app(test_config=None):
 
   @app.route('/ore.html', defaults={'pid': ''})
   @app.route('/ore.html/<path:pid>')
+  @headers({'Access-Control-Allow-Origin':'*'})
   def oreProcess(pid):
     logging.debug("ore.html, pid = " + pid)
     return render_template('ore.html', pid=pid)
 
 
   @app.route('/status/__ajaxproxy/<path:target>', methods=['GET', 'POST', ])
+  @headers({'Access-Control-Allow-Origin':'*'})
   def proxyNodeStatus(target):
     return proxyNode(target)
 
 
   @app.route('/__ajaxproxy/<path:target>', methods=['GET', 'POST', ])
+  @headers({'Access-Control-Allow-Origin':'*'})
   def proxyNode(target):
     if target == '':
       return "<error>/__ajaxproxy/...</error>", 404
@@ -227,6 +232,7 @@ def create_app(test_config=None):
 
 
   @app.route('/oreparse/', methods=['GET', 'POST', ])
+  @headers({'Access-Control-Allow-Origin':'*'})
   def parseResourceMap():
     '''
     given GET | POST ore=ORE-Identifier

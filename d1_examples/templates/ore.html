@@ -62,7 +62,7 @@ function doProcessInfo(xml, dest_element) {
 function doGetQueryCounts(pid, target) {
   var url = getServiceUrl("query/solr", "v2", "");
   var q = addSolrQueryParams("*:*",{"id":pid});
-  url = addUrlQueryParams(url, {"rows":0,"q":q}, false);
+  url = addUrlQueryParams(url, {"rows":1,"q":q}, false);
   var proxyurl = getProxyUrl() + encodeURIComponent(url);
   console.log("Request URL = " + url);
   $(target).text("...");
@@ -72,7 +72,7 @@ function doGetQueryCounts(pid, target) {
     async: true,
     success: function(xml) {
       console.log(xml);
-      var nmatches = $(xml).find("result").attr("numFound");
+      var nmatches = $(xml).find("date[name='dateModified']").text();
       $(target).text(nmatches);
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -95,8 +95,8 @@ function doRetrieveInfo(pid, target1, target2) {
     async: true,
     success: function(xml) {
       console.log(xml);
-      $(target1).text("ok");
-      $(target2).text( $(xml).find("formatId").text());
+      $(target1).text( $(xml).find("dateSysMetadataModified").text() );
+      $(target2).text( $(xml).find("formatId").text() );
     },
     error: function(jqXHR, textStatus, errorThrown) {
       $(target1).text(textStatus);

@@ -1,9 +1,10 @@
 html {
-  font-size: 80%;
+  font-size: 0.85em;
+  line-height: 150%;
 }
 
 * {
-  font-family: Bitstream Vera Sans Mono, Andale Mono, Courier;
+  font-family: "SF Mono", Menlo, monospace;
 }
 
 
