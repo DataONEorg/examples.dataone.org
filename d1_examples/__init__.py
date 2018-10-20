@@ -14,6 +14,7 @@ from d1_common import resource_map
 
 urllib3.contrib.pyopenssl.inject_into_urllib3()
 
+
 APPINFO = {"name": "d1_examples",
            "version": "2.0.0",
            }
@@ -277,8 +278,9 @@ def create_app(test_config=None):
   return app
 
 
+app = create_app()
+
 if __name__ == '__main__':
-  app = create_app()
   logging.basicConfig(level=logging.DEBUG)
   initializeEnvironmentFolders()
   app.run(debug=True)
