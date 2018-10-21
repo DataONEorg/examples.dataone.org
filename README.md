@@ -4,6 +4,20 @@ Web interface to examples.dataone.org site
 Refactored from subversion `example_service_calls`
 
 
+## Running locally
+
+With the requirements installed, navigate to the source folder and run:
+
+```
+gunicorn d1_examples:app
+```
+
+or to use the `gunicorn.conf` file:
+
+```
+./run
+```
+
 
 ## Deployment
 
@@ -163,3 +177,22 @@ sudo systemctl enable d1-examples
   BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
 </Virtualhost>
 ```
+
+### Log Rotation
+
+Configure logrotate to rotate the logfiles:
+
+Create an entry `/etc/logrotate.d/d1-examples`
+
+```
+/var/log/d1-examples/*.log {
+	monthly
+	dateext
+  dateformat -%Y-%m
+  dateyesterday
+  rotate 1000
+}
+```
+
+Which rotates monthly, has -YEAR-MONTH added to the rotated file names, and 
+keeps 1000 log files around.
