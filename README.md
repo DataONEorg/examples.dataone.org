@@ -10,18 +10,24 @@ Refactored from subversion `example_service_calls`
 The server stack is basically:
 
 ```
-           Internet
-              |
-          https @ 443
-              |
-         [apache2.4]
-              |
-         http @ 8010
-              |
-      [gunicorn @ 8010]
-       [examples wsgi]
-          /       \
-    [CN API]     [CN Solr]
+           ┌───────┐                                  
+           │Browser│──────────── 443  ──────────┐     
+           └───────┘                            │     
+               │                                │     
+              443                               │     
+┌──────────────┴────────────────────┐     ┌──────────┐
+│          ┌──────┐                 │     │  CN API  │
+│          │Apache│                 │     └──────────┘
+│          └──────┘                 │           │     
+│             ││                    │           │     
+│     ┌───────┘└───────┐            │           │     
+│    8081             8010          │          443    
+│     │                │            │           │     
+│  ┌────┐    ┌──────────────────┐   │           │     
+│  │RRDA│    │     Gunicorn     │   │           │     
+│  └────┘    │ d1_examples:app  │───┼───────────┘     
+│            └──────────────────┘   │                 
+└───────────────────────────────────┘                 
 ```
 
 Examples WSGI and Gunicorn require python 3.5+ and are installed in a
@@ -83,7 +89,7 @@ Group=www-data
 Restart=on-failure
 WorkingDirectory=/var/local/examples.dataone.org
 Environment="PATH=/var/local/examples.dataone.org/venv/bin"
-ExecStart=/var/local/examples.dataone.org/venv/bin/gunicorn -c /var/local/examples.dataone.org/source/config/gunicorn.conf d1_examples:app
+ExecStart=/var/local/examples.dataone.org/venv/bin/gunicorn -c /var/local/examples.dataone.org/source/conf/gunicorn.conf d1_examples:app
 
 [Install]
 WantedBy=multi-user.target
@@ -127,19 +133,33 @@ sudo systemctl enable d1-examples
     Require all granted
     Allow from all
   </Directory>
+  SSLEngine on
+  SSLCertificateKeyFile  /etc/letsencrypt/live/examples.dataone.org/privkey.pem
+  SSLCertificateFile  /etc/letsencrypt/live/examples.dataone.org/fullchain.pem
   SSLProxyEngine On
-  ...
+  ProxyRequests Off
   ProxyPass / http://127.0.0.1:8010/
   ProxyPassReverse / http://127.0.0.1:8010/
-  <Location /metrics>
-    AuthType None
-    Require all granted
-  </Location>
+  # This is an instance of RRDA listening on port 8081 for DNS resolution
   <Location /rrda/>
 		ProxyPass http://localhost:8081/
 		ProxyPassReverse http://localhost:8081/
 		Order allow,deny
 		Allow from all
 	</Location>  
+  LogLevel info ssl:warn
+  ErrorLog ${APACHE_LOG_DIR}/examples-error.log
+  CustomLog ${APACHE_LOG_DIR}/examples-access.log combined
+  <FilesMatch "\.(cgi|shtml|phtml|php)$">
+    SSLOptions +StdEnvVars
+  </FilesMatch>
+  <Directory /usr/lib/cgi-bin>
+    SSLOptions +StdEnvVars
+  </Directory>
+  BrowserMatch "MSIE [2-6]" \
+    nokeepalive ssl-unclean-shutdown \
+    downgrade-1.0 force-response-1.0
+  # MSIE 7 and newer should be able to use keepalive
+  BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
 </Virtualhost>
 ```
