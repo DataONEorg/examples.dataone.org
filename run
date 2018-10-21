@@ -1,5 +1,3 @@
 #!/bin/bash
 
-export FLASK_APP=d1_examples
-export FLASK_ENV=development
-flask run
+gunicorn -c conf/gunicorn.conf --error-logfile - --access-logfile - d1_examples:app
