@@ -2,7 +2,7 @@
 import logging
 import requests
 import json
-from urllib.parse import quote
+import urllib.parse
 import dateutil.parser
 
 PRODUCTION_SOLR = "https://cn.dataone.org/cn/v2/query/solr/"
@@ -256,13 +256,13 @@ class IDResolver(object):
         response = self.GET(params)
         jsonld = dict()
         jsonld["@context"] = {"@vocab":"http://schema.org/",}
-        jsonld["@id"] = f"https://dataone.org/datasets/{quote(an_id)}"
+        jsonld["@id"] = f"https://dataone.org/datasets/{urllib.parse.quote_plus(an_id)}"
         if response["status"] != 200:
             return jsonld
         # This will raise an IndexError if the id was not found in the solr index
         doc = response["data"]["response"]["docs"][0]
         jsonld["@type"] = "Dataset"
-        jsonld["url"] = f"https://cn.dataone.org/cn/v2/resolve/{quote(an_id)}"
+        jsonld["url"] = f"https://cn.dataone.org/cn/v2/resolve/{urllib.parse.quote_plus(an_id)}"
         jsonld["isAccessibleForFree"] = True
         jsonld["version"] = an_id
         jsonld["identifier"] = an_id

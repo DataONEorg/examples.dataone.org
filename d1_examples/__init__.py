@@ -17,6 +17,7 @@ import requests
 import requests.utils
 import urllib3.contrib.pyopenssl
 from d1_common import resource_map
+import urllib.parse
 from . import solr_json
 
 urllib3.contrib.pyopenssl.inject_into_urllib3()
@@ -175,7 +176,7 @@ def create_app(test_config=None):
     def proxyNode(target):
         if target == "":
             return "<error>/__ajaxproxy/...</error>", 404
-        target = requests.utils.unquote(target)
+        #target = requests.utils.unquote(target)
         logging.debug("Requesting URL = %s", target)
         cert = None
         if request.method == "GET":
@@ -294,6 +295,7 @@ def create_app(test_config=None):
         Returns:
 
         """
+        an_id = urllib.parse.unquote(an_id)
         resolver = solr_json.IDResolver()
         try:
             data = resolver.getObjectJSONLD( an_id )

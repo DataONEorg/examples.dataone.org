@@ -321,6 +321,7 @@ function getXML(url, processfunc, dest_element) {
   var proxy = $(location).attr('protocol') + "//" + $(location).attr('host');
   proxy += "/__ajaxproxy/";
   var proxyurl = proxy + encodeURIComponent(url);
+  //var proxyurl = proxy + encodeURI(url);
   $.ajax({
     type : "GET",
     url : proxyurl,
