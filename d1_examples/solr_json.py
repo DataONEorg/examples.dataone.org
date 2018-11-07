@@ -85,7 +85,7 @@ def generateGeoJSONString(nbc, ebc, sbc, wbc):
                 [wbc, sbc],
             ]
          }}
-    return g
+    return json.dumps(g)
 
 def getAuthorText(origin):
     if not isinstance(origin, list):
