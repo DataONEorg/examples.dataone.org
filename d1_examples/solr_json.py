@@ -268,7 +268,7 @@ class IDResolver(object):
         jsonld["identifier"] = an_id
         jsonld["datePublished"] = _getDatePublished(doc)
         jsonld = addElement(jsonld, doc, "publisher", "datasource")
-        jsonld = addElement(jsonld, doc, "title", "title")
+        jsonld = addElement(jsonld, doc, "name", "title")
         jsonld = addElement(jsonld, doc, "description", "abstract")
         jsonld = addElement(jsonld, doc, "creator", "origin")
         jsonld = addElement(jsonld, doc, "keywords", "", join=True)
