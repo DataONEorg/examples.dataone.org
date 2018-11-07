@@ -130,6 +130,7 @@ function header() {
   t += ' | <a href="resource_find.html">explore package</a>';
   t += ' | <a href="echo_indexed_object.html">echo indexed object</a>';
   t += ' | <a href="pid.html">Get PID</a>';
+  t += ' | <a href="ore.html">Parse ORE</a>';
   $("#index").append(t);
 }
 

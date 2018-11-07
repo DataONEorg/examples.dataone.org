@@ -255,13 +255,13 @@ class IDResolver(object):
         params["q"] = f"id:{an_id_quoted} OR seriesId:{an_id_quoted}"
         response = self.GET(params)
         jsonld = dict()
+        jsonld["@context"] = {"@vocab":"http://schema.org/",}
+        jsonld["@id"] = f"https://dataone.org/datasets/{quote(an_id)}"
         if response["status"] != 200:
             return jsonld
+        # This will raise an IndexError if the id was not found in the solr index
         doc = response["data"]["response"]["docs"][0]
-        logging.debug(str(doc))
-        jsonld["@context"] = {"@vocab":"http://schema.org/",}
         jsonld["@type"] = "Dataset"
-        jsonld["@id"] = f"https://dataone.org/datasets/{quote(an_id)}"
         jsonld["url"] = f"https://cn.dataone.org/cn/v2/resolve/{quote(an_id)}"
         jsonld["isAccessibleForFree"] = True
         jsonld["version"] = an_id

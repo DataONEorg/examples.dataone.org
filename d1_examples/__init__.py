@@ -17,7 +17,7 @@ import requests
 import requests.utils
 import urllib3.contrib.pyopenssl
 from d1_common import resource_map
-import solr_json
+from . import solr_json
 
 urllib3.contrib.pyopenssl.inject_into_urllib3()
 
@@ -295,16 +295,19 @@ def create_app(test_config=None):
 
         """
         resolver = solr_json.IDResolver()
-        data = resolver.getObjectJSONLD( an_id )
+        try:
+            data = resolver.getObjectJSONLD( an_id )
+        except IndexError as e:
+            return f"Not found: {an_id}", 404
         return jsonify(data)
 
-
+    #Return from create_app()
     return app
 
 
-app = create_app()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     initializeEnvironmentFolders()
+    app = create_app()
     app.run(debug=True)
