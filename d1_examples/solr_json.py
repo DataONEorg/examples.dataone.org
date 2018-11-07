@@ -68,10 +68,10 @@ def generateSchemaOrgGeo(nbc, ebc, sbc, wbc):
 
 def generateGeoJSONString(nbc, ebc, sbc, wbc):
     if nbc == sbc:
-        return {
+        return json.dumps({
             "type":"Point",
             "coordinates": [ebc, nbc],
-        }
+        })
     if ebc < wbc:
         ebc = 360.0 - ebc
     g = {"type":"Feature",
