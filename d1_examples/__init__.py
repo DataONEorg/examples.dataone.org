@@ -191,7 +191,7 @@ def create_app(test_config=None):
         """ """
         oredoc = resource_map.ResourceMap()
         try:
-            oredoc.deserialize(data=ore_text)
+            oredoc.deserialize(data=ore_text, format="xml")
         except Exception as e:
             return sendError("/oreparse", "?", str(e))
         results = {"aggregated": [], "science_metadata": [], "science_data": []}
