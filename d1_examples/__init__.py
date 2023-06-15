@@ -141,7 +141,7 @@ def create_app(test_config=None):
     def proxyNode(target):
         if target == "":
             return "<error>/__ajaxproxy/...</error>", 404
-        # target = requests.utils.unquote(target)
+        target = requests.utils.unquote(target)
         logging.debug("Requesting URL = %s", target)
         cert = None
         if request.method == "GET":
