@@ -20,7 +20,7 @@ import urllib.parse
 from d1_examples import solr_json
 
 
-APPINFO = {"name": "d1_examples", "version": "2.0.0"}
+APPINFO = {"name": "d1_examples", "version": "2.2.0"}
 
 DATAONE_HOME = os.path.expanduser(os.path.join("~", ".dataone"))
 CHUNK_SIZE = 1024
@@ -44,14 +44,6 @@ ENVIRONMENTS = {
         "admin": "stage_cnode_cert.pem",
         "cache_db": "stage_cache.sql3",
     },
-    "stage-2": {
-        "home": os.path.join(DATAONE_HOME, "env", "stage-2"),
-        "baseurl": "https://cn-stage-2.test.dataone.org/cn",
-        "login": "https://cilogon.org/?skin=DataONEStage2",
-        "certificate": "client_cert.pem",
-        "admin": "stage2_cnode_cert.pem",
-        "cache_db": "stage2_cache.sql3",
-    },
     "sandbox": {
         "home": os.path.join(DATAONE_HOME, "env", "sandbox"),
         "baseurl": "https://cn-sandbox.test.dataone.org/cn",
@@ -59,30 +51,6 @@ ENVIRONMENTS = {
         "certificate": "client_cert.pem",
         "admin": "sandbox_cnode_cert.pem",
         "cache_db": "sandbox_cache.sql3",
-    },
-    "sandbox-2": {
-        "home": os.path.join(DATAONE_HOME, "env", "sandbox-2"),
-        "baseurl": "https://cn-sandbox-2.test.dataone.org/cn",
-        "login": "https://cilogon.org/?skin=DataONESandbox2",
-        "certificate": "client_cert.pem",
-        "admin": "sandbox2_cnode_cert.pem",
-        "cache_db": "sandbox2_cache.sql3",
-    },
-    "dev": {
-        "home": os.path.join(DATAONE_HOME, "env", "dev"),
-        "baseurl": "https://cn-dev.test.dataone.org/cn",
-        "login": "https://cilogon.org/?skin=DataONEDev",
-        "certificate": "client_cert.pem",
-        "admin": "dev_cnode_cert.pem",
-        "cache_db": "dev_cache.sql3",
-    },
-    "dev-2": {
-        "home": os.path.join(DATAONE_HOME, "env", "dev-2"),
-        "baseurl": "https://cn-dev-2.test.dataone.org/cn",
-        "login": "https://cilogon.org/?skin=DataONEDev2",
-        "certificate": "client_cert.pem",
-        "admin": "dev2_cnode_cert.pem",
-        "cache_db": "dev2_cache.sql3",
     },
 }
 
@@ -173,7 +141,7 @@ def create_app(test_config=None):
     def proxyNode(target):
         if target == "":
             return "<error>/__ajaxproxy/...</error>", 404
-        #target = requests.utils.unquote(target)
+        # target = requests.utils.unquote(target)
         logging.debug("Requesting URL = %s", target)
         cert = None
         if request.method == "GET":
@@ -220,8 +188,7 @@ def create_app(test_config=None):
         return Response(generate(), status=r.status_code)
 
     def processResourceMap(ore_text):
-        """
-    """
+        """ """
         oredoc = resource_map.ResourceMap()
         try:
             oredoc.deserialize(data=ore_text)
@@ -237,13 +204,13 @@ def create_app(test_config=None):
     @headers({"Access-Control-Allow-Origin": "*"})
     def parseResourceMap():
         """
-    given GET | POST ore=ORE-Identifier
+        given GET | POST ore=ORE-Identifier
 
-    Returns: JSON listing:
-      aggregated: all PIDs,
-      science_metadata: metadata PIDs,
-      science_data: data PIDs
-    """
+        Returns: JSON listing:
+          aggregated: all PIDs,
+          science_metadata: metadata PIDs,
+          science_data: data PIDs
+        """
         logging.debug("Method = " + request.method)
         logging.debug("Values = " + str(saveRequest(request)))
         if request.method == "GET":
@@ -284,7 +251,12 @@ def create_app(test_config=None):
             return processResourceMap(ore_doc)
         return sendError("/oreparse/", request.method, "Not supported", 405)
 
-    @app.route("/jsonld/<path:an_id>", methods=["GET", ])
+    @app.route(
+        "/jsonld/<path:an_id>",
+        methods=[
+            "GET",
+        ],
+    )
     @headers({"Access-Control-Allow-Origin": "*"})
     def getJSONLD(an_id):
         """
@@ -295,14 +267,13 @@ def create_app(test_config=None):
         an_id = urllib.parse.unquote(an_id)
         resolver = solr_json.IDResolver()
         try:
-            data = resolver.getObjectJSONLD( an_id )
+            data = resolver.getObjectJSONLD(an_id)
         except IndexError as e:
             return f"Not found: {an_id}", 404
         return jsonify(data)
 
-    #Return from create_app()
+    # Return from create_app()
     return app
-
 
 
 if __name__ == "__main__":
