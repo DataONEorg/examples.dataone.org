@@ -15,12 +15,9 @@ from flask import (
 from flask_headers import headers
 import requests
 import requests.utils
-import urllib3.contrib.pyopenssl
 from d1_common import resource_map
 import urllib.parse
-from . import solr_json
-
-urllib3.contrib.pyopenssl.inject_into_urllib3()
+from d1_examples import solr_json
 
 
 APPINFO = {"name": "d1_examples", "version": "2.0.0"}

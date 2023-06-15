@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
   name='d1_examples',
-  version='2.1.0',
+  version='2.2.0',
   packages=find_packages(),
   include_package_data=True,
   zip_safe=False,
@@ -11,7 +11,7 @@ setup(
     'flask',
     'flask-headers',
     'gunicorn',
-    'pyopenssl',
     'dataone.common',
+    'python-dateutil',
   ],
 )
