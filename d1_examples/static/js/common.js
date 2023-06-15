@@ -144,22 +144,10 @@ function serverList() {
     ['Stage-UCSB', 'https://cn-stage-ucsb-1.test.dataone.org/cn'],
     ['Stage-UNM', 'https://cn-stage-unm-1.test.dataone.org/cn'],
     ['Stage-ORC', 'https://cn-stage-orc-1.test.dataone.org/cn'],
-    ['Stage-2', 'https://cn-stage-2.test.dataone.org/cn'],
-    ['Stage-2-UNM', 'https://cn-stage-unm-2.test.dataone.org/cn'],
-    ['Stage-2-ORC', 'https://cn-stage-orc-2.test.dataone.org/cn'],
     ['Sandbox', 'https://cn-sandbox.test.dataone.org/cn'],
     ['Sandbox-UCSB', 'https://cn-sandbox-ucsb-1.test.dataone.org/cn'],
     ['Sandbox-UNM', 'https://cn-sandbox-unm-1.test.dataone.org/cn'],
-    ['Sandbox-ORC', 'https://cn-sandbox-orc-1.test.dataone.org/cn'],
-    ['Sandbox-2', 'https://cn-sandbox-2.test.dataone.org/cn'],
-    ['Sandbox-2-UCSB', 'https://cn-sandbox-ucsb-2.test.dataone.org/cn'],
-    ['Dev', 'https://cn-dev.test.dataone.org/cn'],
-    ['Dev-UCSB', 'https://cn-dev-ucsb-1.test.dataone.org/cn'],
-    ['Dev-UNM', 'https://cn-dev-unm-1.test.dataone.org/cn'],
-    ['Dev-ORC', 'https://cn-dev-orc-1.test.dataone.org/cn'],
-    ['Dev-2', 'https://cn-dev-2.test.dataone.org/cn'],
-    ['Dev-2-UCSB', 'https://cn-dev-ucsb-2.test.dataone.org/cn'],
-    ['Dev-2-UNM', 'https://cn-dev-unm-2.test.dataone.org/cn']
+    ['Sandbox-ORC', 'https://cn-sandbox-orc-1.test.dataone.org/cn']
     ];
   var i, t;
   for (i in servers) {
